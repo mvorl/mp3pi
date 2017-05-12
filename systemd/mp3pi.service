@@ -1,7 +1,7 @@
 [Unit]
 Description=mp3pi Kivy App
-After=pulseaudio.service
-Requires=pulseaudio.service
+After=pulseaudio.service NetworkManager.service
+Requires=pulseaudio.service NetworkManager.service
 
 [Service]
 #Type=forking

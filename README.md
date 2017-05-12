@@ -36,6 +36,11 @@ echo "/usr/local/lib" > /etc/ld.so.conf.d/locallib.conf
 ldconfig
 ```
 
+If you want to use ALSA instead of pulseaudio:
+```
+apt-get install python-alsaaudio
+```
+
 Modifications on ~/.kivy/config.ini
 ```
 [input]
@@ -45,7 +50,7 @@ mtdev_%(name)s = probesysfs,provider=mtdev
 hid_%(name)s = probesysfs,provider=hidinput
 ```
 
-
+Install as a system service
 ```
 systemctl set-default multi-user.target
 
@@ -61,7 +66,9 @@ https://github.com/graysky2/pulseaudio-ctl
   libnm-util-dev libnmap-parser-perl libnmz7 libnmz7-dev network-manager-dev ??
 
 ## Disable WLAN power management:
-  echo "KERNEL==\"wlan*\", ACTION==\"add\", RUN+=\"/sbin/iwconfig wlan0 power off\"" > /etc/udev/rules.d/10-wlan-powersavings-off.rules
+```
+echo 'KERNEL=="wlan*", ACTION=="add", RUN+="/sbin/iwconfig wlan0 power off"' > /etc/udev/rules.d/10-wlan-powersavings-off.rules
+```
 
 ## Screen is turned upside down:
   add "lcd_rotate=2" to /boot/config.txt
@@ -78,10 +85,14 @@ https://github.com/graysky2/pulseaudio-ctl
   Add "quiet splash" to the kernel cmdline /boot/cmdline.txt
 
 ## Wifi list networks:
-  nmcli device wifi list
+```
+nmcli device wifi list
+```
 
 ## Wifi connect to AP:
-  nmcli device wifi connect "SSID" password "WLANPSK"
+```
+nmcli device wifi connect "SSID" password "WLANPSK"
+```
 
 ## Optional Stuff
 Change Hostname
@@ -90,7 +101,23 @@ echo "raspiradio" > /etc/hostname
 sed -i "s/127.0.1.1.*raspberrypi/127.0.1.1\traspiradio/g" /etc/hosts
 ```
 
-
 ## Screenshots
 ![alt text](screenshots/screenshot.png "Description goes here")
 
+## Changes with respect to https://github.com/mottobug/mp3pi
+- Play/Pause button fully works (i.e. Play after Pause works)
+- WiFi symbol works
+- default image when no station is selected
+- current station always in view
+- descriptive routine names
+- docstrings for most classes and routines (in german)
+- easy switching to ALSA interface
+
+## Work in progress (i.e. does not work fully yet)
+- draggable station list slider (stuck in a loop occasionally)
+- favorites station list
+
+## Ideas
+- move listview+draggable slider into a class
+- move ALSA+pulse into an AudioInterface class
+- How to activate "add/remove favorite"?
