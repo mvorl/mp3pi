@@ -218,8 +218,16 @@
           cursor_image: 'atlas://data/images/defaulttheme/audio-volume-medium'
           on_value: root.change_volume(self.value)
 
-<SaverScreen>:
-  name: 'screensaver'
+<ImageViewer>:
+  name: 'imageviewer'
+  fullscreen: True
+  Image:
+    source: root.source
+    size_hint: 1, 1
+    size: self.parent.size
+
+#<SaverScreen>:
+#  name: 'screensaver'
 
 #<SettingsScreen>:
 #  name: 'settings'

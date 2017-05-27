@@ -130,11 +130,9 @@ class RadioStations():
     item = self.getListItemByName(self.data, name)
     if item is not None:
       id = item.get('id', 0)
-      if id == 0:
-        return(item.get('streamURL', None))
-      else:
-        station_data = self.getStation(id)
-        return(station_data.get('streamURL', None))
+      if id != 0:
+        item = self.getStation(id)
+      return(item.get('streamURL', None))
 
   def addToFavorites(self, name):
     """Hinzufügen der Station mit dem Namen zu den Favoriten."""

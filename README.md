@@ -109,6 +109,8 @@ sed -i "s/127.0.1.1.*raspberrypi/127.0.1.1\traspiradio/g" /etc/hosts
 - WiFi symbol works
 - default image when no station is selected
 - current station always in view
+- imageviewer as screensaver
+  (images located in images/*.png must fit in 800x480)
 - descriptive routine names
 - docstrings for most classes and routines (in german)
 - easy switching to ALSA interface
@@ -116,6 +118,7 @@ sed -i "s/127.0.1.1.*raspberrypi/127.0.1.1\traspiradio/g" /etc/hosts
 ## Work in progress (i.e. does not work fully yet)
 - draggable station list slider (stuck in a loop occasionally)
 - favorites station list
+- 1st image not shown
 
 ## Ideas
 - move listview+draggable slider into a class

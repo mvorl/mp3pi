@@ -29,6 +29,7 @@ from kivy.clock import Clock, mainthread
 from nmcli import nmcli
 from radiostations import RadioStations
 from screensaver import Rpi_ScreenSaver
+from imageviewer import ImageViewer
 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import markup
@@ -43,6 +44,7 @@ sys.setdefaultencoding('utf-8')
 
 RootApp = "init"
 ConfigObject = None
+ImageViewerObject = None
 last_activity_time = 0
 
 audio_interface = "pulse"
@@ -73,7 +75,7 @@ class MyListView(ListView):
 class Mp3PiAppLayout(Screen):
   """Die Kivy-Layoutklasse."""
 
-  global RootApp, ConfigObject, last_activity_time, audio_interface
+  global RootApp, ConfigObject, ImageViewerObject, last_activity_time, audio_interface
   
   isPlaying = False
 
@@ -385,7 +387,7 @@ class Mp3PiAppLayout(Screen):
     abgefragt und angezeigt, evtl. die Playlist geladen und in die
     Stationsliste übertragen, und der Screensaver (de-)aktiviert.
     """
-    global ConfigObject, last_activity_time
+    global last_activity_time, ConfigObject, ImageViewerObject
     
     connection = NMCLI.current_connection() 
 
@@ -415,22 +417,29 @@ class Mp3PiAppLayout(Screen):
         playlist = ConfigObject.get('General', 'playlist')
         Stations.load_playlist(playlist)
         if not Stations.no_data:
-          Logger.info("Status: %d entries loaded" % (len(Stations.data)))
+          Logger.info("Status: {} entries loaded".format(len(Stations.data)))
           self.update_search_results_list()
         self.update_infotext('')
       
       # screensaver
-      timeout = max(60, int(ConfigObject.get('General', 'screensaver')))
+      timeout = max(30, int(ConfigObject.get('General', 'screensaver')))
 
       if (time.time() - last_activity_time) > timeout:
-        if ScreenSaver.display_state is True:
+        if self.manager.current == 'main':
           Logger.info("Status: enabling screensaver")
-          self.manager.current = 'screensaver'
-          ScreenSaver.display_off()
+          #self.manager.current = 'screensaver'
+          self.manager.current = 'imageviewer'
+          if ImageViewerObject.interval != 0:
+            ImageViewerObject.start()
+          else:
+            ScreenSaver.display_off()
       else:
-        if ScreenSaver.display_state is False:
+        if self.manager.current != 'main':
           Logger.info("Status: disabling screensaver")
-          ScreenSaver.display_on()
+          if ImageViewerObject.interval != 0:
+            ImageViewerObject.stop()
+          else:
+            ScreenSaver.display_on()
           self.manager.current = 'main'
       
       time.sleep(.5)
@@ -441,7 +450,6 @@ class Mp3PiAppLayout(Screen):
   def jump_to_index(self, index):
     """Zum index-ten Eintrag der Stationsliste springen und ihn auswählen."""
     self.search_results_list.scroll_to(index)
-    #self.search_results_slider.value = self.search_results_list.container.parent.scroll_y
     self.search_results_list.adapter.get_view(index).trigger_action(duration=0)
 
   def pause(self):
@@ -489,11 +497,11 @@ class Mp3PiAppLayout(Screen):
 
 class Mp3PiApp(App):
   """Die Kivy-Applikationsklasse."""
-  global last_activity_time, ConfigObject, ScreenSaver
+  global last_activity_time, ConfigObject, ImageViewerObject # ,ScreenSaver
 
   def build(self):
     """Kivy build() Override Methode."""
-    global ConfigObject, last_activity_time
+    global last_activity_time, ConfigObject, ImageViewerObject
 #    global ScreenSaver
     
     self.settings_cls = MySettingsWithTabbedPanel
@@ -514,12 +522,15 @@ class Mp3PiApp(App):
     sm = ScreenManager(transition=NoTransition())
     sm.add_widget(Mp3PiAppLayout())
     #sm.add_widget(SettingsScreen())
-    sm.add_widget(SaverScreen())
+    #sm.add_widget(SaverScreen())
+    ImageViewerObject = ImageViewer()
+    sm.add_widget(ImageViewerObject)
     return(sm)
 
   def build_config(self, config):
     """Kivy App.build_config() Override Methode."""
-    config.setdefaults('General', {'screensaver': "60"})
+    config.setdefaults('General', {'screensaver': "30"})
+    config.setdefaults('General', {'image_turnaround': "30"})
     #config.setdefaults('General', {'name': "name"})
     config.setdefaults('General', {'playlist': "radio.de"})
     config.setdefaults('General', {'last_station': None})
@@ -532,6 +543,11 @@ class Mp3PiApp(App):
          "title"  : "Screensaver Timeout",
          "section": "General",
          "key"    : "screensaver"
+        },
+        {"type"   : "numeric",
+         "title"  : "ImageViewer Turnaround",
+         "section": "General",
+         "key"    : "image_turnaround"
         },
         {"type"   : "options",
          "title"  : "Playlist",
@@ -572,6 +588,8 @@ class MySettingsWithTabbedPanel(SettingsWithTabbedPanel):
   def on_config_change(self, config, section, key, value):
     if key == "playlist":
       Stations.no_data = True
+    elif key == "image_turnaround":
+      ImageViewerObject.interval = max(0, int(value))
     Logger.info(
       "Mp3PiApp.py: MySettingsWithTabbedPanel.on_config_change: "
       "{0}, {1}, {2}, {3}".format(config, section, key, value))

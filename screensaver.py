@@ -1,4 +1,3 @@
-#import time
 import os
 
 class Rpi_ScreenSaver:
@@ -17,7 +16,7 @@ class Rpi_ScreenSaver:
     with open(self.rpi_display, "w") as f:
       f.write(value)
       f.close()
-
+  
   def display_on(self):
     if self.running_on_rpi:
       self.set_bl_power("0")
