@@ -15,21 +15,12 @@ from kivy.clock import Clock
 from kivy.logger import Logger
 from kivy.lang import Builder
 
-#Builder.load_string('''
-#<ImageViewer>:
-#  name: 'imageviewer'
-#  fullscreen: True
-#  Image:
-#    source: root.source
-#    size_hint: 1, 1
-#    size: self.parent.size
-#''')
-
 class ImageViewer(Screen):
 
   source = StringProperty(None)
   imagedir = 'images';
   interval = 30
+  _cache = []
   _curEvent = None
 
   def __init__(self, **kwargs):
@@ -40,6 +31,7 @@ class ImageViewer(Screen):
     if self._curEvent:
       Clock.unschedule(self._curEvent)
     if self.interval != 0:
+      self.reload()
       self.update()
       self._curEvent = Clock.schedule_interval(self.update, self.interval)
 
@@ -49,21 +41,24 @@ class ImageViewer(Screen):
       Clock.unschedule(self._curEvent)
     self.source = ''
 
-  def update(self, *nargs):
+  def reload(self):
     imagedir = join(dirname(__file__), self.imagedir)
-    images = glob(join(imagedir, '*.png'))
-    if len(images) != 0:
-      curimage = choice(images)
-      Logger.info("ImageViewer: showing file " + curimage)
+    self._cache = glob(join(imagedir, '*.png'))
+
+  def update(self, *nargs):
+    if len(self._cache) != 0:
+      curimage = choice(self._cache)
+      Logger.debug("ImageViewer: showing file " + curimage)
       self.source = curimage
     else:
-      Logger.info("ImageViewer: no PNG files in " + imagedir)
+      Logger.debug("ImageViewer: no PNG files in " + imagedir)
 
 class ImageViewerTestApp(App):
 
   def build(self):
     sm = ScreenManager()
     iv = ImageViewer()
+    iv.interval = 10
     sm.add_widget(iv)
     iv.start()
     #Clock.schedule_once(iv.stop, 3*iv.interval)
@@ -76,4 +71,15 @@ def signal_handler(signal, frame):
 
 if __name__ == "__main__":
   signal.signal(signal.SIGINT, signal_handler)
+  Builder.load_string('''
+<ImageViewer>:
+  name: 'imageviewer'
+  fullscreen: True
+  Image:
+    source: root.source
+    size_hint: 1,1
+    #size: self.parent.size
+    allow_stretch: True
+  ''')
+
   ImageViewerTestApp().run()

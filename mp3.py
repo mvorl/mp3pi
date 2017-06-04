@@ -497,12 +497,13 @@ class Mp3PiAppLayout(Screen):
 
 class Mp3PiApp(App):
   """Die Kivy-Applikationsklasse."""
-  global last_activity_time, ConfigObject, ImageViewerObject # ,ScreenSaver
+  global last_activity_time, ConfigObject, ImageViewerObject
+  #global ScreenSaver
 
   def build(self):
     """Kivy build() Override Methode."""
     global last_activity_time, ConfigObject, ImageViewerObject
-#    global ScreenSaver
+    #global ScreenSaver
     
     self.settings_cls = MySettingsWithTabbedPanel
 
@@ -510,11 +511,11 @@ class Mp3PiApp(App):
 
     def on_motion(self, etype, motionevent):
       global last_activity_time
-#      global ScreenSaver
+      #global ScreenSaver
       last_activity_time = time.time()
-#      # Catch 1st touch when screensaver is active
-#      if ScreenSaver.display_state is False:
-#        return(True)
+      ## Catch 1st touch when screensaver is active
+      #if ScreenSaver.display_state is False:
+      #  return(True)
     Window.bind(on_motion=on_motion)
 
     ConfigObject = self.config
