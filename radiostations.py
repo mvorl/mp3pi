@@ -41,6 +41,7 @@ class RadioStations():
     if playlist == "custom" or playlist == 'favorites':
       filename = playlist + ".json"
       if os.path.exists(filename) is True:
+        del self.data[:]
         with open(filename, "r") as fd:
           self.data = json.load(fd)
         self.no_data = False

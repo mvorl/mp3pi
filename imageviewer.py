@@ -3,7 +3,8 @@
 import os
 import sys
 import signal
-from os.path import dirname,join
+#from os.path import dirname,join
+import fnmatch
 from random import choice
 from glob import glob
 
@@ -42,8 +43,11 @@ class ImageViewer(Screen):
     self.source = ''
 
   def reload(self):
-    imagedir = join(dirname(__file__), self.imagedir)
-    self._cache = glob(join(imagedir, '*.png'))
+    imagedir = os.path.join(os.path.dirname(__file__), self.imagedir)
+    self._cache = []
+    for root, dirnames, filenames in os.walk(imagedir):
+      for filename in fnmatch.filter(filenames, '*.png'):
+        self._cache.append(os.path.join(root, filename))
 
   def update(self, *nargs):
     if len(self._cache) != 0:
@@ -51,7 +55,7 @@ class ImageViewer(Screen):
       Logger.debug("ImageViewer: showing file " + curimage)
       self.source = curimage
     else:
-      Logger.debug("ImageViewer: no PNG files in " + imagedir)
+      Logger.debug("ImageViewer: no PNG files in " + self.imagedir)
 
 class ImageViewerTestApp(App):
 
