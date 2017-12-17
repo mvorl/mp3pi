@@ -19,15 +19,21 @@ apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev 
 
 apt-get install python-pip libjpeg-dev python-dbus pulseaudio-utils pulseaudio mtdev-tools libbluetooth-dev bc network-manager
 
-pip install --upgrade Cython==0.23
+#pip install --upgrade Cython==0.23
+pip install --upgrade Cython
 pip install git+https://github.com/kivy/kivy.git@master
+```
+
+## Turn auto exit in pulseaudio off
+```
+echo "exit-idle-time = -1" >> /etc/pulse/daemon.conf
 ```
 
 Install recent version of mpg123:
 ```
 apt-get install libpulse-dev
-wget http://mpg123.de/download/mpg123-1.23.8.tar.bz2
-tar xvjf mpg123-1.23.8.tar.bz2
+wget https://www.mpg123.de/download/mpg123-1.25.0.tar.bz2
+tar xvjf mpg123-1.25.0.tar.bz2
 cd mpg123...
 ./configure --with-audio=pulse
 make -j4
@@ -84,6 +90,9 @@ echo 'KERNEL=="wlan*", ACTION=="add", RUN+="/sbin/iwconfig wlan0 power off"' > /
 
   Add "quiet splash" to the kernel cmdline /boot/cmdline.txt
 
+## Turn off console screensaver (1 hour by default)
+  add "consoleblank=0" /boot/cmdline.txt
+
 ## Wifi list networks:
 ```
 nmcli device wifi list
@@ -101,26 +110,23 @@ echo "raspiradio" > /etc/hostname
 sed -i "s/127.0.1.1.*raspberrypi/127.0.1.1\traspiradio/g" /etc/hosts
 ```
 
+## Play with custom Playlists
+```
+curl -A "User-Agent: XBMC Addon Radio" 'http://radio.de/info/menu/broadcastsofcategory?category=_top' | jq "." > radio.de.json
+
+jq '[.[]|select(.name=="NDR 2" or .name=="RADIO BOB!")]' < radio.de.json
+```
+
 ## Screenshots
 ![alt text](screenshots/screenshot.png "Description goes here")
-
-## Changes with respect to https://github.com/mottobug/mp3pi
-- Play/Pause button fully works (i.e. Play after Pause works)
-- WiFi symbol works
-- default image when no station is selected
-- current station always in view
-- imageviewer as screensaver
-  (images located in images/*.png must fit in 800x480)
-- descriptive routine names
-- docstrings for most classes and routines (in german)
-- easy switching to ALSA interface
 
 ## Work in progress (i.e. does not work fully yet)
 - draggable station list slider (stuck in a loop occasionally)
 - favorites station list
-- 1st image not shown
+- image viewer: on activation, 1st image not shown
 
 ## Ideas
 - move listview+draggable slider into a class
 - move ALSA+pulse into an AudioInterface class
 - How to activate "add/remove favorite"?
+- How to select favorites?
