@@ -209,7 +209,9 @@ class Mp3PiAppLayout(Screen):
 
   def change_image(self, station_name):
     """Wechsel des Stations-Bildes."""
-    imageUrl = Stations.getImageUrlByName(station_name) 
+    imageUrl = Stations.getImageUrlByName(station_name)
+    if imageUrl == '':
+      imageurl = self.default_image
     Logger.info("Mp3Pi GUI: Loading Image from %s" % (imageUrl))
     self.imageid.source = imageUrl
 

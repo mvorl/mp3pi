@@ -119,7 +119,7 @@ class RadioStations():
     """Zur Station 'name' die URL der Stationsgrafik liefern."""
     item = self.getListItemByName(self.data, name)
     if item is not None:
-      return(item['pictureBaseURL'] + item['picture1Name'])
+      return(item.get('pictureBaseURL','') + item.get('picture1Name',''))
 
   def getStreamURLbyName(self, name):
     """Zur Station 'name' die StreamURL liefern.
