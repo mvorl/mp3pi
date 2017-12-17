@@ -20,7 +20,7 @@ class AlsaInterface():
     if not name:
       name = self.mixer
     try:
-      mixer = alsaaudio.Mixer(name, **kwargs)
+      mixer = alsaaudio.Mixer(name)
     except alsaaudio.ALSAAudioError:
       print("No such mixer")
       sys.exit(1)
