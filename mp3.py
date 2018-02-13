@@ -30,12 +30,13 @@ from nmcli import nmcli
 from radiostations import RadioStations
 from screensaver import Rpi_ScreenSaver
 from imageviewer import ImageViewer
+from settingfavorites import SettingFavorites
 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import markup
 
-import pdb
-import pprint
+# import pdb
+# import pprint
 
 
 reload(sys)
@@ -115,21 +116,7 @@ class Mp3PiAppLayout(Screen):
 
     return {'text': name,
             'deselected_color': background,
-#            'on_touch_down': partial(self.create_longtouch_clock, row_index),
-#            'on_touch_up': partial(self.delete_longtouch_clock, row_index)
             }
-
-#  def create_longtouch_clock(self, index, widget, touch, *args):
-#    callback = partial(self.long_touch_event, index, touch)
-#    Clock.schedule_once(callback, 2)
-#    touch.ud['event'] = callback
-#
-#  def delete_longtouch_clock(self, index, widget, touch, *args):
-#    if 'event' in touch.ud:
-#      Clock.unschedule(touch.ud['event'])
-#
-#  def long_touch_event(self, index, touch, dt):
-#    print('LongTouch index={} pos={}'.format(index, touch.pos))
 
   def __init__(self, **kwargs):
     global RootApp, audio_interface
@@ -156,7 +143,7 @@ class Mp3PiAppLayout(Screen):
     scrls = self.search_results_slider
     scrlv.bind(scroll_y=partial(self.scroll_slider,scrls))
     scrls.bind(value=partial(self.scroll_list,scrlv))
-    
+
     self.start_status_thread()
 
   def scroll_list(self, scrlv, scrls, value):
@@ -211,7 +198,7 @@ class Mp3PiAppLayout(Screen):
     """Wechsel des Stations-Bildes."""
     imageUrl = Stations.getImageUrlByName(station_name)
     if imageUrl == '':
-      imageurl = self.default_image
+      imageUrl = self.default_image
     Logger.info("Mp3Pi GUI: Loading Image from %s" % (imageUrl))
     self.imageid.source = imageUrl
 
@@ -269,15 +256,17 @@ class Mp3PiAppLayout(Screen):
     
     if connection is not None:
       signal = int(connection['SIGNAL'])
-      if signal < 50:
-        for i in lines[0:3]:
-          i.a = .5
-      elif signal < 60:
-        for i in lines[0:2]:
-          i.a = .5
-      elif signal < 70:
-        for i in lines[0:1]:
-          i.a = .5
+    else:
+      signal = 0
+    if signal < 50:
+      for i in lines[0:3]:
+        i.a = .5
+    elif signal < 60:
+      for i in lines[0:2]:
+        i.a = .5
+    elif signal < 70:
+      for i in lines[0:1]:
+        i.a = .5
 
   @mainthread
   def update_search_results_list(self):
@@ -299,7 +288,8 @@ class Mp3PiAppLayout(Screen):
     Der Thread kann durch Setzen des playerproc_stop-Events beendet werden.
     """
     global audio_interface
-    args = ["mpg123", "--no-control", "--list", url]
+    args = ["mpg123", "--list", url]
+    #args.extend(["--no-control"])
     args.extend(["--output", audio_interface])
     #args.extend(["--buffer", "2048"])
     proc = subprocess.Popen(args, stderr=subprocess.PIPE, bufsize=0)
@@ -421,10 +411,12 @@ class Mp3PiAppLayout(Screen):
         if not Stations.no_data:
           Logger.info("Status: {} entries loaded".format(len(Stations.data)))
           self.update_search_results_list()
+          if bool(ConfigObject.getint('General', 'autoplay')):
+            Clock.schedule_once(lambda dt: self.pause(), 5.0)
         self.update_infotext('')
       
       # screensaver
-      timeout = max(30, int(ConfigObject.get('General', 'screensaver')))
+      timeout = max(30, ConfigObject.getint('General', 'screensaver'))
 
       if (time.time() - last_activity_time) > timeout:
         if self.manager.current == 'main':
@@ -532,38 +524,50 @@ class Mp3PiApp(App):
 
   def build_config(self, config):
     """Kivy App.build_config() Override Methode."""
-    config.setdefaults('General', {'screensaver': "30"})
-    config.setdefaults('General', {'image_turnaround': "30"})
-    #config.setdefaults('General', {'name': "name"})
+    config.setdefaults('General', {'screensaver': 30})
+    config.setdefaults('General', {'image_turnaround': 30})
+    config.setdefaults('General', {'autoplay': 0})  # False
     config.setdefaults('General', {'playlist': "radio.de"})
     config.setdefaults('General', {'last_station': None})
+    config.setdefaults('General', {'favorites': None})
 
   def build_settings(self, settings):
     """Kivy App.build_settings() Override Methode."""
+    settings.register_type("favorites",SettingFavorites)
     settings.add_json_panel("General", self.config, data="""
       [
         {"type"   : "numeric",
          "title"  : "Screensaver Timeout",
+         "desc"   : "Seconds until screensaver starts",
          "section": "General",
          "key"    : "screensaver"
         },
         {"type"   : "numeric",
          "title"  : "ImageViewer Turnaround",
+         "desc"   : "Seconds an image will stay on screen",
          "section": "General",
          "key"    : "image_turnaround"
         },
+        {"type"   : "bool",
+         "title"  : "Autoplay",
+         "desc"   : "Autoplay last station after start",
+         "section": "General",
+         "key"    : "autoplay"
+        },
         {"type"   : "options",
          "title"  : "Playlist",
+         "desc"   : "List of stations to choose from",
          "section": "General",
          "options": ["radio.de", "custom", "favorites"],
          "key"    : "playlist"
+        },
+        {"type"   : "favorites",
+         "title"  : "Edit Favorites",
+         "desc"   : "Select stations for favorites list",
+         "section": "General",
+         "key"    : "favorites"
         }
       ]"""
-#        {"type"   : "string",
-#         "title"  : "String",
-#         "section": "General",
-#         "key"    : "name"
-#        },
     )
 
   def on_stop(self):
@@ -589,7 +593,7 @@ class MySettingsWithTabbedPanel(SettingsWithTabbedPanel):
     Logger.info("Mp3PiApp.py: MySettingsWithTabbedPanel.on_close")
 
   def on_config_change(self, config, section, key, value):
-    if key == "playlist":
+    if key in ["playlist", "favorites"]:
       Stations.no_data = True
     elif key == "image_turnaround":
       ImageViewerObject.interval = max(0, int(value))

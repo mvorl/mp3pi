@@ -1,6 +1,8 @@
 #:import ListItemButton kivy.uix.listview.ListItemButton
 #:import ListView kivy.uix.listview.ListView
 #:import ListAdapter kivy.adapters.listadapter.ListAdapter
+#:import Button kivy.uix.button.Button
+#:import Label kivy.uix.label.Label
 #:import Factory kivy.factory.Factory
 
 <ListItemButtonTitle@ListItemButton>:
@@ -223,8 +225,93 @@
   fullscreen: True
   Image:
     source: root.source
-    size_hint: 1, 1
+    size_hint: 1,1
     size: self.parent.size
+    allow_stretch: True
+
+<FavoritesBox>:
+  orientation: 'vertical'
+  spacing: 5
+
+  # Declaration of widgets for python code
+  favListStationsList: favListStationsList
+  favListStationsSlider: favListStationsSlider
+  favListFilterInput: favListFilterInput
+  favListSaveButton: favListSaveButton
+  favListCancelButton: favListCancelButton
+
+  canvas:
+    Color:
+      rgba: 1, 1, 1, .15
+    Rectangle:
+      pos: self.pos
+      size: self.size
+
+  BoxLayout:
+    orientation: 'horizontal'
+    size_hint_y: 0.1
+    
+    ToggleButton:
+      group: 'playlist'
+      text: 'radio.de'
+      on_release: root.change_playlist(self.text)
+    ToggleButton:
+      group: 'playlist'
+      text: 'custom'
+      on_release: root.change_playlist(self.text)
+    ToggleButton:
+      group: 'playlist'
+      text: 'favorites'
+      on_release: root.change_playlist(self.text)
+
+  BoxLayout:
+    orientation: 'horizontal'
+    size_hint_y: 0.1
+
+    Label:
+      text: 'Filter'
+      size_hint_x: None
+    TextInput:
+      id: favListFilterInput
+      text: '*'
+      multiline: False
+      background_color: [.5, .5, .5, 1]
+      on_text: root.update_list()
+
+  BoxLayout:
+    orientation: 'horizontal'
+
+    FavListListView:
+      id: favListStationsList
+      adapter:
+        ListAdapter(data=[],
+        selection_mode='multiple',
+        propagate_selection_to_data=True,
+        cls=Factory.ListItemButtonTitle,
+        args_converter=root.args_converter
+        )
+    Slider:
+      id: favListStationsSlider
+      min: 0
+      max: 1
+      step: 0.01
+      value: 1
+      orientation: 'vertical'
+      size_hint: (0.1, 0.95)
+
+  BoxLayout:
+    orientation: 'horizontal'
+    size_hint_y: 0.1
+    spacing: 50
+
+    Button:
+      id: favListSaveButton
+      text: 'Save'
+      on_release: root.saveFavlist()
+    Button:
+      id: favListCancelButton
+      text: 'Cancel'
+      on_release: root.cancelFavlist()
 
 #<SaverScreen>:
 #  name: 'screensaver'

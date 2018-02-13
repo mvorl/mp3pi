@@ -17,7 +17,10 @@ apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev 
    gstreamer1.0-plugins-{bad,base,good,ugly} \
    gstreamer1.0-{omx,alsa} python-dev cython
 
-apt-get install python-pip libjpeg-dev python-dbus pulseaudio-utils pulseaudio mtdev-tools libbluetooth-dev bc network-manager
+apt-get install python-pip libjpeg-dev python-dbus pulseaudio-utils pulseaudio \
+   mtdev-tools libbluetooth-dev bc network-manager
+
+apt-get install xclip xsel
 
 #pip install --upgrade Cython==0.23
 pip install --upgrade Cython
@@ -40,6 +43,14 @@ make -j4
 make install
 echo "/usr/local/lib" > /etc/ld.so.conf.d/locallib.conf
 ldconfig
+```
+
+Install pulseaudio-ctl
+```
+git clone https://github.com/graysky2/pulseaudio-ctl
+cd pulseaudio-ctl
+make
+make install
 ```
 
 If you want to use ALSA instead of pulseaudio:
@@ -65,8 +76,6 @@ cp systemd/pulseaudio.service /etc/systemd/system
 systemctl enable mp3pi
 systemctl enable pulseaudio
 ```
-
-https://github.com/graysky2/pulseaudio-ctl
 
 ?? gir1.2-networkmanager-1.0 gir1.2-nmgtk-1.0 libnm-dev libnm-glib-dev libnm-glib-vpn-dev libnm-gtk-dev
   libnm-util-dev libnmap-parser-perl libnmz7 libnmz7-dev network-manager-dev ??
