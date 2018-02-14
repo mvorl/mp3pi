@@ -218,7 +218,7 @@ class SettingFavorites(SettingItem):
     global settingFavorites
     if value is None:
       return
-    self.fbind('on_release', self._create_popup)
+    self.bind(on_release=self._create_popup)
     settingFavorites = self
 
   def _create_popup(self, instance):
